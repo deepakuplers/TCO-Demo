@@ -1,0 +1,339 @@
+import { useState, useEffect, useRef } from "react";
+
+const MACHINES = [
+  {
+    id: "370x",
+    name: "370X",
+    type: "Excavator",
+    weight: "36t",
+    rrp: 195000,
+    fuelPerHour: 18,
+    serviceAnnual: 3200,
+    maintenancePct: 0.04,
+    residualCurve: [1, 0.82, 0.68, 0.56, 0.46, 0.38],
+    tonnesPerHour: 120,
+    img: "🔩",
+  },
+  {
+    id: "420x",
+    name: "420X",
+    type: "Excavator",
+    weight: "45t",
+    rrp: 245000,
+    fuelPerHour: 22,
+    serviceAnnual: 3800,
+    maintenancePct: 0.045,
+    residualCurve: [1, 0.80, 0.65, 0.53, 0.43, 0.35],
+    tonnesPerHour: 160,
+    img: "⚙️",
+  },
+  {
+    id: "520x",
+    name: "520X",
+    type: "Excavator",
+    weight: "52t",
+    rrp: 310000,
+    fuelPerHour: 28,
+    serviceAnnual: 4500,
+    maintenancePct: 0.05,
+    residualCurve: [1, 0.78, 0.62, 0.50, 0.40, 0.33],
+    tonnesPerHour: 200,
+    img: "🏗️",
+  },
+  {
+    id: "475wl",
+    name: "475 WLS",
+    type: "Wheel Loader",
+    weight: "25t",
+    rrp: 185000,
+    fuelPerHour: 16,
+    serviceAnnual: 2800,
+    maintenancePct: 0.035,
+    residualCurve: [1, 0.83, 0.70, 0.58, 0.48, 0.40],
+    tonnesPerHour: 180,
+    img: "🚜",
+  },
+];
+
+const USAGE_MODES = [
+  { id: "normal", label: "Standard", maintenanceMult: 1.0 },
+  { id: "heavy", label: "Heavy Duty", maintenanceMult: 1.35 },
+  { id: "hammer", label: "Hammer Use", maintenanceMult: 1.8 },
+];
+
+function lerp(curve, year) {
+  if (year <= 0) return curve[0];
+  if (year >= curve.length - 1) return curve[curve.length - 1];
+  const lo = Math.floor(year);
+  const hi = Math.ceil(year);
+  const t = year - lo;
+  return curve[lo] * (1 - t) + curve[hi] * t;
+}
+
+function fmt(n) {
+  return "£" + Math.round(n).toLocaleString("en-GB");
+}
+
+function Slider({ label, value, onChange, min, max, step, format, unit }) {
+  const pct = ((value - min) / (max - min)) * 100;
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+        <span style={{ fontSize: 12, fontFamily: "var(--f-body)", color: "var(--c-mid)", textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
+        <span style={{ fontSize: 14, fontFamily: "var(--f-mono)", fontWeight: 700, color: "var(--c-text)" }}>
+          {format ? format(value) : value}{unit || ""}
+        </span>
+      </div>
+      <input
+        type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        style={{
+          width: "100%", height: 6, appearance: "none", background: `linear-gradient(90deg, var(--c-accent) ${pct}%, var(--c-track) ${pct}%)`,
+          borderRadius: 3, outline: "none", cursor: "pointer",
+        }}
+      />
+    </div>
+  );
+}
+
+function BarSegment({ color, pct, label, value, delay }) {
+  const [w, setW] = useState(0);
+  useEffect(() => { const t = setTimeout(() => setW(pct), 80 + delay); return () => clearTimeout(t); }, [pct, delay]);
+  if (pct < 1) return null;
+  return (
+    <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+      <div style={{ width: 110, fontSize: 11, fontFamily: "var(--f-body)", color: "var(--c-mid)", textTransform: "uppercase", letterSpacing: 0.5, flexShrink: 0 }}>{label}</div>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ flex: 1, height: 28, background: "var(--c-track)", borderRadius: 4, overflow: "hidden" }}>
+          <div style={{
+            width: `${w}%`, height: "100%", background: color, borderRadius: 4,
+            transition: "width 0.7s cubic-bezier(.4,0,.2,1)",
+          }} />
+        </div>
+        <span style={{ fontSize: 13, fontFamily: "var(--f-mono)", color: "var(--c-text)", fontWeight: 700, whiteSpace: "nowrap", minWidth: 80, textAlign: "right" }}>{value}</span>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [sel, setSel] = useState(null);
+  const [years, setYears] = useState(5);
+  const [hoursPerYear, setHoursPerYear] = useState(1500);
+  const [fuelPrice, setFuelPrice] = useState(1.35);
+  const [usageMode, setUsageMode] = useState("normal");
+  const [warranty, setWarranty] = useState(0);
+  const [insurance, setInsurance] = useState(2500);
+  const [customRRP, setCustomRRP] = useState(null);
+
+  const machine = MACHINES.find(m => m.id === sel);
+  const mode = USAGE_MODES.find(m => m.id === usageMode);
+  const rrp = customRRP ?? (machine?.rrp || 0);
+
+  useEffect(() => { if (machine) setCustomRRP(null); }, [sel]);
+
+  const calc = machine ? (() => {
+    const totalHours = hoursPerYear * years;
+    const fuel = machine.fuelPerHour * fuelPrice * totalHours;
+    const service = machine.serviceAnnual * years;
+    const maint = rrp * machine.maintenancePct * mode.maintenanceMult * years;
+    const resid = rrp * lerp(machine.residualCurve, years);
+    const depn = rrp - resid;
+    const ins = insurance * years;
+    const warr = warranty;
+    const total = depn + fuel + service + maint + warr + ins;
+    return { fuel, service, maint, depn, resid, ins, warr, total, totalHours, costPerHour: total / totalHours };
+  })() : null;
+
+  const colors = {
+    depn: "#D4A017", fuel: "#E8651A", service: "#2D8CFF", maint: "#FF4466",
+    warr: "#8B5CF6", ins: "#14B8A6",
+  };
+
+  // Machine select screen
+  if (!sel) {
+    return (
+      <div style={{
+        "--c-bg": "#0C0C0E", "--c-card": "#18181B", "--c-accent": "#FFB800", "--c-text": "#F4F4F5",
+        "--c-mid": "#8C8C91", "--c-track": "#27272A", "--f-display": "'Oswald', sans-serif",
+        "--f-body": "'DM Sans', sans-serif", "--f-mono": "'JetBrains Mono', monospace",
+        background: "var(--c-bg)", minHeight: "100vh", color: "var(--c-text)", padding: "40px 20px",
+        fontFamily: "var(--f-body)",
+      }}>
+        <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <div style={{ marginBottom: 12, fontSize: 11, letterSpacing: 3, color: "var(--c-accent)", textTransform: "uppercase", fontWeight: 700 }}>Hillhead 2026</div>
+          <h1 style={{ fontFamily: "var(--f-display)", fontSize: 48, fontWeight: 700, margin: "0 0 8px", lineHeight: 1.1 }}>Total Cost of<br/>Ownership</h1>
+          <p style={{ color: "var(--c-mid)", fontSize: 15, marginBottom: 48, maxWidth: 420 }}>
+            Select a machine to explore the true lifetime cost of ownership with interactive modelling.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190, 1fr))", gap: 16 }}>
+            {MACHINES.map((m, i) => (
+              <button key={m.id} onClick={() => setSel(m.id)} style={{
+                background: "var(--c-card)", border: "2px solid var(--c-track)", borderRadius: 12,
+                padding: "28px 20px 22px", cursor: "pointer", textAlign: "left", transition: "all 0.25s",
+                animation: `fadeUp 0.5s ${i * 0.08}s both`,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--c-accent)"; e.currentTarget.style.transform = "translateY(-4px)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--c-track)"; e.currentTarget.style.transform = "translateY(0)"; }}
+              >
+                <div style={{ fontSize: 36, marginBottom: 14 }}>{m.img}</div>
+                <div style={{ fontFamily: "var(--f-display)", fontSize: 28, fontWeight: 700, color: "var(--c-accent)" }}>{m.name}</div>
+                <div style={{ fontSize: 13, color: "var(--c-mid)", marginTop: 4 }}>{m.type} · {m.weight}</div>
+                <div style={{ fontSize: 13, fontFamily: "var(--f-mono)", marginTop: 12, color: "var(--c-text)" }}>{fmt(m.rrp)} <span style={{ color: "var(--c-mid)", fontSize: 11 }}>RRP</span></div>
+              </button>
+            ))}
+          </div>
+        </div>
+        <style>{`
+          @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+          input[type=range]::-webkit-slider-thumb { appearance:none; width:18px; height:18px; border-radius:50%; background:var(--c-accent); cursor:pointer; box-shadow:0 0 8px rgba(255,184,0,.4); }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Calculator screen
+  const items = calc ? [
+    { key: "depn", label: "Depreciation", val: calc.depn },
+    { key: "fuel", label: "Fuel", val: calc.fuel },
+    { key: "service", label: "Servicing", val: calc.service },
+    { key: "maint", label: "Maintenance", val: calc.maint },
+    { key: "warr", label: "Warranty", val: calc.warr },
+    { key: "ins", label: "Insurance", val: calc.ins },
+  ] : [];
+  const maxVal = calc ? calc.total : 1;
+
+  return (
+    <div style={{
+      "--c-bg": "#0C0C0E", "--c-card": "#18181B", "--c-accent": "#FFB800", "--c-text": "#F4F4F5",
+      "--c-mid": "#8C8C91", "--c-track": "#27272A", "--f-display": "'Oswald', sans-serif",
+      "--f-body": "'DM Sans', sans-serif", "--f-mono": "'JetBrains Mono', monospace",
+      background: "var(--c-bg)", minHeight: "100vh", color: "var(--c-text)", padding: "32px 20px",
+      fontFamily: "var(--f-body)",
+    }}>
+      <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+      <style>{`
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        input[type=range]::-webkit-slider-thumb { appearance:none; width:18px; height:18px; border-radius:50%; background:var(--c-accent); cursor:pointer; box-shadow:0 0 8px rgba(255,184,0,.4); }
+      `}</style>
+      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 32 }}>
+          <button onClick={() => setSel(null)} style={{
+            background: "var(--c-card)", border: "1px solid var(--c-track)", color: "var(--c-mid)",
+            borderRadius: 8, padding: "8px 14px", cursor: "pointer", fontSize: 13, fontFamily: "var(--f-body)",
+          }}>← Back</button>
+          <div>
+            <div style={{ fontSize: 11, letterSpacing: 3, color: "var(--c-accent)", textTransform: "uppercase", fontWeight: 700 }}>TCO Calculator</div>
+            <h1 style={{ fontFamily: "var(--f-display)", fontSize: 36, fontWeight: 700, margin: 0 }}>
+              JCB {machine.name} <span style={{ color: "var(--c-mid)", fontWeight: 400, fontSize: 20 }}>{machine.type}</span>
+            </h1>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 32, alignItems: "start" }}>
+          {/* LEFT — Inputs */}
+          <div style={{ background: "var(--c-card)", borderRadius: 16, padding: "28px 24px", animation: "fadeUp 0.4s both" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 20, color: "var(--c-accent)" }}>Assumptions</div>
+
+            <Slider label="Purchase Price" value={customRRP ?? rrp} onChange={v => setCustomRRP(v)}
+              min={Math.round(machine.rrp * 0.6)} max={Math.round(machine.rrp * 1.3)} step={5000} format={fmt} />
+            <Slider label="Ownership" value={years} onChange={setYears} min={1} max={10} step={1} unit=" yrs" />
+            <Slider label="Hours / Year" value={hoursPerYear} onChange={setHoursPerYear} min={500} max={3000} step={100} unit=" hrs" />
+            <Slider label="Fuel Price" value={fuelPrice} onChange={setFuelPrice} min={0.9} max={2.0} step={0.05} format={v => "£" + v.toFixed(2)} unit="/L" />
+            <Slider label="Annual Insurance" value={insurance} onChange={setInsurance} min={0} max={8000} step={250} format={fmt} />
+            <Slider label="Extended Warranty" value={warranty} onChange={setWarranty} min={0} max={15000} step={500} format={fmt} />
+
+            <div style={{ marginTop: 4 }}>
+              <div style={{ fontSize: 12, fontFamily: "var(--f-body)", color: "var(--c-mid)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Usage Type</div>
+              <div style={{ display: "flex", gap: 6 }}>
+                {USAGE_MODES.map(m => (
+                  <button key={m.id} onClick={() => setUsageMode(m.id)} style={{
+                    flex: 1, padding: "8px 4px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                    fontFamily: "var(--f-body)", border: "1px solid",
+                    background: usageMode === m.id ? "var(--c-accent)" : "transparent",
+                    color: usageMode === m.id ? "#000" : "var(--c-mid)",
+                    borderColor: usageMode === m.id ? "var(--c-accent)" : "var(--c-track)",
+                  }}>{m.label}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT — Results */}
+          <div style={{ animation: "fadeUp 0.5s 0.1s both" }}>
+            {/* Hero stats */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 28 }}>
+              {[
+                { label: "Total Cost of Ownership", val: fmt(calc.total), accent: true },
+                { label: "Cost per Hour", val: fmt(calc.costPerHour) },
+                { label: "Residual Value", val: fmt(calc.resid) },
+              ].map((s, i) => (
+                <div key={i} style={{
+                  background: s.accent ? "linear-gradient(135deg, #FFB800 0%, #E8651A 100%)" : "var(--c-card)",
+                  borderRadius: 12, padding: "20px 18px",
+                }}>
+                  <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: s.accent ? "rgba(0,0,0,.6)" : "var(--c-mid)", marginBottom: 6 }}>{s.label}</div>
+                  <div style={{ fontFamily: "var(--f-display)", fontSize: s.accent ? 32 : 26, fontWeight: 700, color: s.accent ? "#000" : "var(--c-text)" }}>{s.val}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Cost breakdown bars */}
+            <div style={{ background: "var(--c-card)", borderRadius: 16, padding: "24px 24px 18px" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 18, color: "var(--c-accent)" }}>Cost Breakdown</div>
+              {items.map((it, i) => (
+                <BarSegment key={it.key} color={colors[it.key]} pct={(it.val / maxVal) * 100} label={it.label} value={fmt(it.val)} delay={i * 60} />
+              ))}
+            </div>
+
+            {/* Secondary stats */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginTop: 16 }}>
+              {[
+                { label: "Total Hours", val: calc.totalHours.toLocaleString() },
+                { label: "Fuel (Total)", val: fmt(calc.fuel) },
+                { label: "Tonnes/Hr", val: machine.tonnesPerHour },
+                { label: "Usage Mode", val: mode.label },
+              ].map((s, i) => (
+                <div key={i} style={{ background: "var(--c-card)", borderRadius: 10, padding: "14px 14px" }}>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 1, color: "var(--c-mid)", marginBottom: 4 }}>{s.label}</div>
+                  <div style={{ fontFamily: "var(--f-mono)", fontSize: 16, fontWeight: 700 }}>{s.val}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Annual breakdown mini table */}
+            <div style={{ background: "var(--c-card)", borderRadius: 16, padding: "24px 24px 16px", marginTop: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 14, color: "var(--c-accent)" }}>Year-by-Year Residual</div>
+              <div style={{ display: "flex", gap: 2 }}>
+                {machine.residualCurve.map((v, i) => {
+                  const h = v * 100;
+                  const isActive = i <= years;
+                  return (
+                    <div key={i} style={{ flex: 1, textAlign: "center" }}>
+                      <div style={{ height: 80, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+                        <div style={{
+                          width: "70%", height: `${h * 0.75}px`, borderRadius: "4px 4px 0 0",
+                          background: isActive ? "var(--c-accent)" : "var(--c-track)",
+                          opacity: isActive ? 1 : 0.4,
+                          transition: "all 0.4s",
+                        }} />
+                      </div>
+                      <div style={{ fontSize: 10, fontFamily: "var(--f-mono)", color: "var(--c-mid)", marginTop: 4 }}>Yr {i}</div>
+                      <div style={{ fontSize: 11, fontFamily: "var(--f-mono)", fontWeight: 600, color: isActive ? "var(--c-text)" : "var(--c-mid)" }}>{Math.round(v * 100)}%</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ textAlign: "center", marginTop: 40, fontSize: 11, color: "var(--c-mid)", letterSpacing: 1 }}>
+          JCB TCO CALCULATOR · HILLHEAD 2026 DEMO · ALL FIGURES INDICATIVE
+        </div>
+      </div>
+    </div>
+  );
+}
