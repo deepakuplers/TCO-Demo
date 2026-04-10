@@ -7,234 +7,90 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --c-bg: #0C0C0E;
-    --c-card: #18181B;
-    --c-accent: #FFB800;
-    --c-accent2: #E8651A;
-    --c-text: #F4F4F5;
-    --c-mid: #8C8C91;
-    --c-track: #27272A;
-    --f-display: 'Oswald', sans-serif;
-    --f-body: 'DM Sans', sans-serif;
-    --f-mono: 'JetBrains Mono', monospace;
+    --c-bg: #0C0C0E; --c-card: #18181B; --c-accent: #FFB800; --c-accent2: #E8651A;
+    --c-text: #F4F4F5; --c-mid: #8C8C91; --c-track: #27272A;
+    --f-display: 'Oswald', sans-serif; --f-body: 'DM Sans', sans-serif; --f-mono: 'JetBrains Mono', monospace;
   }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--c-bg); color:var(--c-text); font-family:var(--f-body); min-height:100vh; padding:40px 20px; -webkit-tap-highlight-color:transparent; }
+  .container { max-width:1000px; margin:0 auto; }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  .landing-badge { font-size:11px; letter-spacing:3px; color:var(--c-accent); text-transform:uppercase; font-weight:700; margin-bottom:12px; }
+  .landing-title { font-family:var(--f-display); font-size:48px; font-weight:700; line-height:1.1; margin-bottom:8px; }
+  .landing-sub { color:var(--c-mid); font-size:15px; margin-bottom:48px; max-width:420px; }
+  .machine-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:16px; }
+  .machine-card { background:var(--c-card); border:2px solid var(--c-track); border-radius:12px; padding:28px 20px 22px; cursor:pointer; text-align:left; transition:border-color .25s,transform .25s; animation:fadeUp .5s both; }
+  .machine-card:nth-child(2){animation-delay:.08s} .machine-card:nth-child(3){animation-delay:.16s} .machine-card:nth-child(4){animation-delay:.24s}
+  .machine-card:hover,.machine-card:active { border-color:var(--c-accent); transform:translateY(-4px); }
+  .machine-card .icon{font-size:36px;margin-bottom:14px} .machine-card .name{font-family:var(--f-display);font-size:28px;font-weight:700;color:var(--c-accent)}
+  .machine-card .meta{font-size:13px;color:var(--c-mid);margin-top:4px} .machine-card .price{font-size:13px;font-family:var(--f-mono);margin-top:12px} .machine-card .price span{color:var(--c-mid);font-size:11px}
 
-  body {
-    background: var(--c-bg);
-    color: var(--c-text);
-    font-family: var(--f-body);
-    min-height: 100vh;
-    padding: 40px 20px;
-    -webkit-tap-highlight-color: transparent;
-  }
+  #calculator{display:none}
+  .calc-header{display:flex;align-items:center;gap:16px;margin-bottom:32px}
+  .back-btn{background:var(--c-card);border:1px solid var(--c-track);color:var(--c-mid);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-family:var(--f-body);transition:border-color .2s}
+  .back-btn:hover{border-color:var(--c-accent);color:var(--c-text)}
+  .calc-badge{font-size:11px;letter-spacing:3px;color:var(--c-accent);text-transform:uppercase;font-weight:700}
+  .calc-title{font-family:var(--f-display);font-size:36px;font-weight:700;margin:0} .calc-title span{color:var(--c-mid);font-weight:400;font-size:20px}
+  .calc-grid{display:grid;grid-template-columns:360px 1fr;gap:32px;align-items:start}
+  @media(max-width:800px){.calc-grid{grid-template-columns:1fr}.landing-title{font-size:36px}}
 
-  .container { max-width: 1000px; margin: 0 auto; }
+  .input-panel{background:var(--c-card);border-radius:16px;padding:28px 24px;animation:fadeUp .4s both}
+  .panel-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;color:var(--c-accent)}
 
-  /* ── Landing ── */
-  .landing-badge {
-    font-size: 11px; letter-spacing: 3px; color: var(--c-accent);
-    text-transform: uppercase; font-weight: 700; margin-bottom: 12px;
-  }
-  .landing-title {
-    font-family: var(--f-display); font-size: 48px; font-weight: 700;
-    line-height: 1.1; margin-bottom: 8px;
-  }
-  .landing-sub {
-    color: var(--c-mid); font-size: 15px; margin-bottom: 48px; max-width: 420px;
-  }
-  .machine-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px;
-  }
-  .machine-card {
-    background: var(--c-card); border: 2px solid var(--c-track); border-radius: 12px;
-    padding: 28px 20px 22px; cursor: pointer; text-align: left;
-    transition: border-color 0.25s, transform 0.25s;
-    animation: fadeUp 0.5s both;
-  }
-  .machine-card:nth-child(2) { animation-delay: 0.08s; }
-  .machine-card:nth-child(3) { animation-delay: 0.16s; }
-  .machine-card:nth-child(4) { animation-delay: 0.24s; }
-  .machine-card:hover, .machine-card:active {
-    border-color: var(--c-accent); transform: translateY(-4px);
-  }
-  .machine-card .icon { font-size: 36px; margin-bottom: 14px; }
-  .machine-card .name {
-    font-family: var(--f-display); font-size: 28px; font-weight: 700; color: var(--c-accent);
-  }
-  .machine-card .meta { font-size: 13px; color: var(--c-mid); margin-top: 4px; }
-  .machine-card .price {
-    font-size: 13px; font-family: var(--f-mono); margin-top: 12px;
-  }
-  .machine-card .price span { color: var(--c-mid); font-size: 11px; }
+  .field-group{margin-bottom:16px}
+  .field-label{font-size:11px;color:var(--c-mid);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block}
+  .field-box{display:flex;align-items:center;background:var(--c-bg);border:1.5px solid var(--c-track);border-radius:8px;padding:0 12px;transition:border-color .2s;height:44px}
+  .field-box:focus-within{border-color:var(--c-accent)}
+  .field-box .prefix,.field-box .suffix{font-size:13px;font-family:var(--f-mono);color:var(--c-mid);flex-shrink:0;user-select:none}
+  .field-box input{width:100%;background:none;border:none;outline:none;font-size:15px;font-family:var(--f-mono);font-weight:700;color:var(--c-text);text-align:right;padding:0 4px;-moz-appearance:textfield}
+  .field-box input::-webkit-outer-spin-button,.field-box input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 
-  /* ── Calculator ── */
-  #calculator { display: none; }
-  .calc-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
-  .back-btn {
-    background: var(--c-card); border: 1px solid var(--c-track); color: var(--c-mid);
-    border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 13px;
-    font-family: var(--f-body); transition: border-color 0.2s;
-  }
-  .back-btn:hover { border-color: var(--c-accent); color: var(--c-text); }
-  .calc-badge {
-    font-size: 11px; letter-spacing: 3px; color: var(--c-accent);
-    text-transform: uppercase; font-weight: 700;
-  }
-  .calc-title {
-    font-family: var(--f-display); font-size: 36px; font-weight: 700; margin: 0;
-  }
-  .calc-title span { color: var(--c-mid); font-weight: 400; font-size: 20px; }
+  .ownership-row{display:flex;gap:8px}
+  .ownership-row .field-box{flex:1}
 
-  .calc-grid {
-    display: grid; grid-template-columns: 340px 1fr; gap: 32px; align-items: start;
-  }
-  @media (max-width: 800px) {
-    .calc-grid { grid-template-columns: 1fr; }
-    .landing-title { font-size: 36px; }
-  }
+  .usage-buttons{display:flex;gap:6px;margin-top:4px}
+  .usage-btn{flex:1;padding:10px 4px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--f-body);border:1px solid var(--c-track);background:transparent;color:var(--c-mid);transition:all .2s}
+  .usage-btn.active{background:var(--c-accent);color:#000;border-color:var(--c-accent)}
 
-  /* ── Input Panel ── */
-  .input-panel {
-    background: var(--c-card); border-radius: 16px; padding: 28px 24px;
-    animation: fadeUp 0.4s both;
-  }
-  .panel-label {
-    font-size: 13px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1px; margin-bottom: 20px; color: var(--c-accent);
-  }
+  .results{animation:fadeUp .5s .1s both}
+  .hero-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px}
+  @media(max-width:600px){.hero-stats{grid-template-columns:1fr}}
+  .hero-card{background:var(--c-card);border-radius:12px;padding:20px 18px}
+  .hero-card.primary{background:linear-gradient(135deg,#FFB800 0%,#E8651A 100%)}
+  .hero-card .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--c-mid);margin-bottom:6px}
+  .hero-card.primary .label{color:rgba(0,0,0,.6)}
+  .hero-card .val{font-family:var(--f-display);font-size:26px;font-weight:700}
+  .hero-card.primary .val{font-size:32px;color:#000}
 
-  .slider-group { margin-bottom: 18px; }
-  .slider-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
-  .slider-label {
-    font-size: 12px; color: var(--c-mid); text-transform: uppercase; letter-spacing: 1px;
-  }
-  .slider-value {
-    font-size: 14px; font-family: var(--f-mono); font-weight: 700; color: var(--c-text);
-  }
-  input[type=range] {
-    width: 100%; height: 6px; appearance: none; -webkit-appearance: none;
-    border-radius: 3px; outline: none; cursor: pointer; background: var(--c-track);
-  }
-  input[type=range]::-webkit-slider-thumb {
-    appearance: none; -webkit-appearance: none;
-    width: 20px; height: 20px; border-radius: 50%; background: var(--c-accent);
-    cursor: pointer; box-shadow: 0 0 10px rgba(255,184,0,.4);
-  }
-  input[type=range]::-moz-range-thumb {
-    width: 20px; height: 20px; border-radius: 50%; background: var(--c-accent);
-    cursor: pointer; border: none; box-shadow: 0 0 10px rgba(255,184,0,.4);
-  }
+  .breakdown-panel{background:var(--c-card);border-radius:16px;padding:24px 24px 18px}
+  .bar-row{display:flex;align-items:center;margin-bottom:10px}
+  .bar-label{width:120px;font-size:12px;color:var(--c-mid);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+  .bar-track{flex:1;height:30px;background:var(--c-track);border-radius:4px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:4px;width:0%;transition:width .7s cubic-bezier(.4,0,.2,1)}
+  .bar-value{min-width:90px;text-align:right;font-size:14px;font-family:var(--f-mono);font-weight:700;color:var(--c-text);padding-left:12px;white-space:nowrap}
 
-  .usage-buttons { display: flex; gap: 6px; margin-top: 4px; }
-  .usage-btn {
-    flex: 1; padding: 10px 4px; border-radius: 6px; font-size: 12px; font-weight: 600;
-    cursor: pointer; font-family: var(--f-body); border: 1px solid var(--c-track);
-    background: transparent; color: var(--c-mid); transition: all 0.2s;
-  }
-  .usage-btn.active {
-    background: var(--c-accent); color: #000; border-color: var(--c-accent);
-  }
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-top:16px}
+  @media(max-width:600px){.stats-grid{grid-template-columns:1fr 1fr}}
+  .stat-card{background:var(--c-card);border-radius:10px;padding:14px}
+  .stat-card .label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--c-mid);margin-bottom:4px}
+  .stat-card .val{font-family:var(--f-mono);font-size:16px;font-weight:700}
 
-  /* ── Results ── */
-  .results { animation: fadeUp 0.5s 0.1s both; }
+  .residual-panel{background:var(--c-card);border-radius:16px;padding:24px 24px 16px;margin-top:16px}
+  .residual-bars{display:flex;gap:2px}
+  .residual-col{flex:1;text-align:center}
+  .residual-col .track{height:80px;display:flex;align-items:flex-end;justify-content:center}
+  .residual-col .fill{width:70%;border-radius:4px 4px 0 0;background:var(--c-track);transition:all .4s}
+  .residual-col .fill.active{background:var(--c-accent)}
+  .residual-col .yr{font-size:10px;font-family:var(--f-mono);color:var(--c-mid);margin-top:4px}
+  .residual-col .pct{font-size:11px;font-family:var(--f-mono);font-weight:600;color:var(--c-mid)}
+  .residual-col .pct.active{color:var(--c-text)}
 
-  .hero-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 28px; }
-  @media (max-width: 600px) { .hero-stats { grid-template-columns: 1fr; } }
-  .hero-card {
-    background: var(--c-card); border-radius: 12px; padding: 20px 18px;
-  }
-  .hero-card.primary {
-    background: linear-gradient(135deg, #FFB800 0%, #E8651A 100%);
-  }
-  .hero-card .label {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--c-mid); margin-bottom: 6px;
-  }
-  .hero-card.primary .label { color: rgba(0,0,0,.6); }
-  .hero-card .val {
-    font-family: var(--f-display); font-size: 26px; font-weight: 700;
-  }
-  .hero-card.primary .val { font-size: 32px; color: #000; }
-
-  /* ── Bars ── */
-  .breakdown-panel {
-    background: var(--c-card); border-radius: 16px; padding: 24px 24px 18px;
-  }
-  .bar-row {
-    display: flex; align-items: center; margin-bottom: 10px;
-  }
-  .bar-label {
-    width: 120px; font-size: 12px; color: var(--c-mid);
-    text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
-  }
-  .bar-track {
-    flex: 1; height: 30px; background: var(--c-track); border-radius: 4px; overflow: hidden;
-  }
-  .bar-fill {
-    height: 100%; border-radius: 4px; width: 0%;
-    transition: width 0.7s cubic-bezier(.4,0,.2,1);
-  }
-  .bar-value {
-    min-width: 90px; text-align: right; font-size: 14px;
-    font-family: var(--f-mono); font-weight: 700; color: var(--c-text);
-    padding-left: 12px; white-space: nowrap;
-  }
-
-  /* ── Secondary stats ── */
-  .stats-grid {
-    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-top: 16px;
-  }
-  @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
-  .stat-card {
-    background: var(--c-card); border-radius: 10px; padding: 14px;
-  }
-  .stat-card .label {
-    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--c-mid); margin-bottom: 4px;
-  }
-  .stat-card .val {
-    font-family: var(--f-mono); font-size: 16px; font-weight: 700;
-  }
-
-  /* ── Residual chart ── */
-  .residual-panel {
-    background: var(--c-card); border-radius: 16px; padding: 24px 24px 16px; margin-top: 16px;
-  }
-  .residual-bars { display: flex; gap: 2px; }
-  .residual-col { flex: 1; text-align: center; }
-  .residual-col .track {
-    height: 80px; display: flex; align-items: flex-end; justify-content: center;
-  }
-  .residual-col .fill {
-    width: 70%; border-radius: 4px 4px 0 0; background: var(--c-track);
-    transition: all 0.4s;
-  }
-  .residual-col .fill.active { background: var(--c-accent); }
-  .residual-col .yr {
-    font-size: 10px; font-family: var(--f-mono); color: var(--c-mid); margin-top: 4px;
-  }
-  .residual-col .pct {
-    font-size: 11px; font-family: var(--f-mono); font-weight: 600; color: var(--c-mid);
-  }
-  .residual-col .pct.active { color: var(--c-text); }
-
-  .footer {
-    text-align: center; margin-top: 40px; font-size: 11px;
-    color: var(--c-mid); letter-spacing: 1px;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .footer{text-align:center;margin-top:40px;font-size:11px;color:var(--c-mid);letter-spacing:1px}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
-
 <div class="container">
-  <!-- ═══ LANDING SCREEN ═══ -->
   <div id="landing">
     <div class="landing-badge">Hillhead 2026</div>
     <h1 class="landing-title">Total Cost of<br>Ownership</h1>
@@ -242,7 +98,6 @@
     <div class="machine-grid" id="machineGrid"></div>
   </div>
 
-  <!-- ═══ CALCULATOR SCREEN ═══ -->
   <div id="calculator">
     <div class="calc-header">
       <button class="back-btn" onclick="showLanding()">← Back</button>
@@ -251,62 +106,45 @@
         <h1 class="calc-title" id="calcTitle"></h1>
       </div>
     </div>
-
     <div class="calc-grid">
-      <!-- LEFT — Inputs -->
       <div class="input-panel">
         <div class="panel-label">Assumptions</div>
 
-        <div class="slider-group">
-          <div class="slider-header">
-            <span class="slider-label">Purchase Price</span>
-            <span class="slider-value" id="valPrice"></span>
-          </div>
-          <input type="range" id="slPrice" oninput="update()">
+        <div class="field-group">
+          <label class="field-label">Purchase Price</label>
+          <div class="field-box"><span class="prefix">£</span><input type="number" id="inPrice" oninput="update()"></div>
         </div>
 
-        <div class="slider-group">
-          <div class="slider-header">
-            <span class="slider-label">Ownership</span>
-            <span class="slider-value" id="valYears"></span>
+        <div class="field-group">
+          <label class="field-label">Ownership Period</label>
+          <div class="ownership-row">
+            <div class="field-box"><input type="number" id="inYears" min="0" max="15" value="5" oninput="update()"><span class="suffix">yrs</span></div>
+            <div class="field-box"><input type="number" id="inMonths" min="0" max="11" value="0" oninput="update()"><span class="suffix">mths</span></div>
           </div>
-          <input type="range" id="slYears" min="1" max="10" step="1" value="5" oninput="update()">
         </div>
 
-        <div class="slider-group">
-          <div class="slider-header">
-            <span class="slider-label">Hours / Year</span>
-            <span class="slider-value" id="valHours"></span>
-          </div>
-          <input type="range" id="slHours" min="500" max="3000" step="100" value="1500" oninput="update()">
+        <div class="field-group">
+          <label class="field-label">Hours / Year</label>
+          <div class="field-box"><input type="number" id="inHours" min="0" value="1500" oninput="update()"><span class="suffix">hrs</span></div>
         </div>
 
-        <div class="slider-group">
-          <div class="slider-header">
-            <span class="slider-label">Fuel Price</span>
-            <span class="slider-value" id="valFuel"></span>
-          </div>
-          <input type="range" id="slFuel" min="0.90" max="2.00" step="0.05" value="1.35" oninput="update()">
+        <div class="field-group">
+          <label class="field-label">Fuel Price</label>
+          <div class="field-box"><span class="prefix">£</span><input type="number" id="inFuel" min="0" step="0.01" value="1.35" oninput="update()"><span class="suffix">/ litre</span></div>
         </div>
 
-        <div class="slider-group">
-          <div class="slider-header">
-            <span class="slider-label">Annual Insurance</span>
-            <span class="slider-value" id="valIns"></span>
-          </div>
-          <input type="range" id="slIns" min="0" max="8000" step="250" value="2500" oninput="update()">
+        <div class="field-group">
+          <label class="field-label">Annual Insurance</label>
+          <div class="field-box"><span class="prefix">£</span><input type="number" id="inIns" min="0" step="100" value="2500" oninput="update()"></div>
         </div>
 
-        <div class="slider-group">
-          <div class="slider-header">
-            <span class="slider-label">Extended Warranty</span>
-            <span class="slider-value" id="valWarr"></span>
-          </div>
-          <input type="range" id="slWarr" min="0" max="15000" step="500" value="0" oninput="update()">
+        <div class="field-group">
+          <label class="field-label">Extended Warranty</label>
+          <div class="field-box"><span class="prefix">£</span><input type="number" id="inWarr" min="0" step="100" value="0" oninput="update()"></div>
         </div>
 
-        <div>
-          <div class="slider-label" style="margin-bottom:8px">Usage Type</div>
+        <div class="field-group">
+          <label class="field-label">Usage Type</label>
           <div class="usage-buttons">
             <button class="usage-btn active" data-mode="normal" onclick="setUsage('normal')">Standard</button>
             <button class="usage-btn" data-mode="heavy" onclick="setUsage('heavy')">Heavy Duty</button>
@@ -315,206 +153,99 @@
         </div>
       </div>
 
-      <!-- RIGHT — Results -->
       <div class="results">
         <div class="hero-stats">
-          <div class="hero-card primary">
-            <div class="label">Total Cost of Ownership</div>
-            <div class="val" id="heroTCO"></div>
-          </div>
-          <div class="hero-card">
-            <div class="label">Cost per Hour</div>
-            <div class="val" id="heroCPH"></div>
-          </div>
-          <div class="hero-card">
-            <div class="label">Residual Value</div>
-            <div class="val" id="heroResid"></div>
-          </div>
+          <div class="hero-card primary"><div class="label">Total Cost of Ownership</div><div class="val" id="heroTCO"></div></div>
+          <div class="hero-card"><div class="label">Cost per Hour</div><div class="val" id="heroCPH"></div></div>
+          <div class="hero-card"><div class="label">Residual Value</div><div class="val" id="heroResid"></div></div>
         </div>
-
-        <div class="breakdown-panel">
-          <div class="panel-label">Cost Breakdown</div>
-          <div id="bars"></div>
-        </div>
-
+        <div class="breakdown-panel"><div class="panel-label">Cost Breakdown</div><div id="bars"></div></div>
         <div class="stats-grid">
           <div class="stat-card"><div class="label">Total Hours</div><div class="val" id="statHours"></div></div>
           <div class="stat-card"><div class="label">Fuel (Total)</div><div class="val" id="statFuel"></div></div>
           <div class="stat-card"><div class="label">Tonnes/Hr</div><div class="val" id="statTPH"></div></div>
           <div class="stat-card"><div class="label">Usage Mode</div><div class="val" id="statMode"></div></div>
         </div>
-
-        <div class="residual-panel">
-          <div class="panel-label">Year-by-Year Residual</div>
-          <div class="residual-bars" id="residualBars"></div>
-        </div>
+        <div class="residual-panel"><div class="panel-label">Year-by-Year Residual</div><div class="residual-bars" id="residualBars"></div></div>
       </div>
     </div>
-
     <div class="footer">JCB TCO CALCULATOR · HILLHEAD 2026 DEMO · ALL FIGURES INDICATIVE</div>
   </div>
 </div>
 
 <script>
-const MACHINES = [
-  { id:"370x", name:"370X", type:"Excavator", weight:"36t", rrp:195000, fuelPerHour:18, serviceAnnual:3200, maintenancePct:0.04, residualCurve:[1,0.82,0.68,0.56,0.46,0.38], tonnesPerHour:120, img:"🔩" },
-  { id:"420x", name:"420X", type:"Excavator", weight:"45t", rrp:245000, fuelPerHour:22, serviceAnnual:3800, maintenancePct:0.045, residualCurve:[1,0.80,0.65,0.53,0.43,0.35], tonnesPerHour:160, img:"⚙️" },
-  { id:"520x", name:"520X", type:"Excavator", weight:"52t", rrp:310000, fuelPerHour:28, serviceAnnual:4500, maintenancePct:0.05, residualCurve:[1,0.78,0.62,0.50,0.40,0.33], tonnesPerHour:200, img:"🏗️" },
-  { id:"475wl", name:"475 WLS", type:"Wheel Loader", weight:"25t", rrp:185000, fuelPerHour:16, serviceAnnual:2800, maintenancePct:0.035, residualCurve:[1,0.83,0.70,0.58,0.48,0.40], tonnesPerHour:180, img:"🚜" },
+const MACHINES=[
+  {id:"370x",name:"370X",type:"Excavator",weight:"36t",rrp:195000,fuelPerHour:18,serviceAnnual:3200,maintenancePct:.04,residualCurve:[1,.82,.68,.56,.46,.38],tonnesPerHour:120,img:"🔩"},
+  {id:"420x",name:"420X",type:"Excavator",weight:"45t",rrp:245000,fuelPerHour:22,serviceAnnual:3800,maintenancePct:.045,residualCurve:[1,.80,.65,.53,.43,.35],tonnesPerHour:160,img:"⚙️"},
+  {id:"520x",name:"520X",type:"Excavator",weight:"52t",rrp:310000,fuelPerHour:28,serviceAnnual:4500,maintenancePct:.05,residualCurve:[1,.78,.62,.50,.40,.33],tonnesPerHour:200,img:"🏗️"},
+  {id:"475wl",name:"475 WLS",type:"Wheel Loader",weight:"25t",rrp:185000,fuelPerHour:16,serviceAnnual:2800,maintenancePct:.035,residualCurve:[1,.83,.70,.58,.48,.40],tonnesPerHour:180,img:"🚜"},
 ];
+const USAGE={normal:{label:"Standard",mult:1},heavy:{label:"Heavy Duty",mult:1.35},hammer:{label:"Hammer Use",mult:1.8}};
+const BAR_COLORS={depn:"#D4A017",fuel:"#E8651A",service:"#2D8CFF",maint:"#FF4466",warr:"#8B5CF6",ins:"#14B8A6"};
+let current=null,usageMode="normal";
+function fmt(n){return"£"+Math.round(n).toLocaleString("en-GB")}
+function lerp(c,y){if(y<=0)return c[0];if(y>=c.length-1)return c[c.length-1];const l=Math.floor(y),h=Math.ceil(y),t=y-l;return c[l]*(1-t)+c[h]*t}
 
-const USAGE = { normal: { label:"Standard", mult:1.0 }, heavy: { label:"Heavy Duty", mult:1.35 }, hammer: { label:"Hammer Use", mult:1.8 } };
-const BAR_COLORS = { depn:"#D4A017", fuel:"#E8651A", service:"#2D8CFF", maint:"#FF4466", warr:"#8B5CF6", ins:"#14B8A6" };
+const grid=document.getElementById("machineGrid");
+MACHINES.forEach(m=>{const c=document.createElement("div");c.className="machine-card";c.onclick=()=>selectMachine(m.id);c.innerHTML=`<div class="icon">${m.img}</div><div class="name">${m.name}</div><div class="meta">${m.type} · ${m.weight}</div><div class="price">${fmt(m.rrp)} <span>RRP</span></div>`;grid.appendChild(c)});
 
-let current = null;
-let usageMode = "normal";
-
-function fmt(n) { return "£" + Math.round(n).toLocaleString("en-GB"); }
-
-function lerp(curve, year) {
-  if (year <= 0) return curve[0];
-  if (year >= curve.length - 1) return curve[curve.length - 1];
-  const lo = Math.floor(year), hi = Math.ceil(year), t = year - lo;
-  return curve[lo] * (1 - t) + curve[hi] * t;
-}
-
-// Build landing cards
-const grid = document.getElementById("machineGrid");
-MACHINES.forEach(m => {
-  const card = document.createElement("div");
-  card.className = "machine-card";
-  card.onclick = () => selectMachine(m.id);
-  card.innerHTML = `
-    <div class="icon">${m.img}</div>
-    <div class="name">${m.name}</div>
-    <div class="meta">${m.type} · ${m.weight}</div>
-    <div class="price">${fmt(m.rrp)} <span>RRP</span></div>
-  `;
-  grid.appendChild(card);
-});
-
-function selectMachine(id) {
-  current = MACHINES.find(m => m.id === id);
-  document.getElementById("landing").style.display = "none";
-  document.getElementById("calculator").style.display = "block";
-  document.getElementById("calcTitle").innerHTML = `JCB ${current.name} <span>${current.type}</span>`;
-
-  const sl = document.getElementById("slPrice");
-  sl.min = Math.round(current.rrp * 0.6);
-  sl.max = Math.round(current.rrp * 1.3);
-  sl.step = 5000;
-  sl.value = current.rrp;
-
-  usageMode = "normal";
-  document.querySelectorAll(".usage-btn").forEach(b => b.classList.toggle("active", b.dataset.mode === "normal"));
-
+function selectMachine(id){
+  current=MACHINES.find(m=>m.id===id);
+  document.getElementById("landing").style.display="none";
+  document.getElementById("calculator").style.display="block";
+  document.getElementById("calcTitle").innerHTML=`JCB ${current.name} <span>${current.type}</span>`;
+  document.getElementById("inPrice").value=current.rrp;
+  document.getElementById("inYears").value=5;
+  document.getElementById("inMonths").value=0;
+  document.getElementById("inHours").value=1500;
+  document.getElementById("inFuel").value="1.35";
+  document.getElementById("inIns").value=2500;
+  document.getElementById("inWarr").value=0;
+  usageMode="normal";
+  document.querySelectorAll(".usage-btn").forEach(b=>b.classList.toggle("active",b.dataset.mode==="normal"));
   update();
 }
+function showLanding(){document.getElementById("landing").style.display="block";document.getElementById("calculator").style.display="none";current=null}
+function setUsage(mode){usageMode=mode;document.querySelectorAll(".usage-btn").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));update()}
 
-function showLanding() {
-  document.getElementById("landing").style.display = "block";
-  document.getElementById("calculator").style.display = "none";
-  current = null;
-}
+function update(){
+  if(!current)return;
+  const m=current;
+  const price=+document.getElementById("inPrice").value||0;
+  const yrs=+document.getElementById("inYears").value||0;
+  const mths=Math.min(+document.getElementById("inMonths").value||0,11);
+  const years=yrs+mths/12;
+  const hpy=+document.getElementById("inHours").value||0;
+  const fp=+document.getElementById("inFuel").value||0;
+  const ins=+document.getElementById("inIns").value||0;
+  const warr=+document.getElementById("inWarr").value||0;
+  const mode=USAGE[usageMode];
 
-function setUsage(mode) {
-  usageMode = mode;
-  document.querySelectorAll(".usage-btn").forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
-  update();
-}
+  const totalHours=hpy*years;
+  const fuel=m.fuelPerHour*fp*totalHours;
+  const service=m.serviceAnnual*years;
+  const maint=price*m.maintenancePct*mode.mult*years;
+  const resid=price*lerp(m.residualCurve,years);
+  const depn=price-resid;
+  const insTotal=ins*years;
+  const total=depn+fuel+service+maint+warr+insTotal;
+  const cph=totalHours>0?total/totalHours:0;
 
-function updateSliderTrack(el) {
-  const pct = ((el.value - el.min) / (el.max - el.min)) * 100;
-  el.style.background = `linear-gradient(90deg, var(--c-accent) ${pct}%, var(--c-track) ${pct}%)`;
-}
+  document.getElementById("heroTCO").textContent=fmt(total);
+  document.getElementById("heroCPH").textContent=fmt(cph);
+  document.getElementById("heroResid").textContent=fmt(resid);
 
-function update() {
-  if (!current) return;
-  const m = current;
-  const price = +document.getElementById("slPrice").value;
-  const years = +document.getElementById("slYears").value;
-  const hpy   = +document.getElementById("slHours").value;
-  const fp    = +document.getElementById("slFuel").value;
-  const ins   = +document.getElementById("slIns").value;
-  const warr  = +document.getElementById("slWarr").value;
-  const mode  = USAGE[usageMode];
+  const items=[{key:"depn",label:"Depreciation",val:depn},{key:"fuel",label:"Fuel",val:fuel},{key:"service",label:"Servicing",val:service},{key:"maint",label:"Maintenance",val:maint},{key:"warr",label:"Warranty",val:warr},{key:"ins",label:"Insurance",val:insTotal}];
+  const barsEl=document.getElementById("bars");barsEl.innerHTML="";
+  items.forEach((it,i)=>{if(it.val<1)return;const pct=(it.val/total)*100;const row=document.createElement("div");row.className="bar-row";row.innerHTML=`<div class="bar-label">${it.label}</div><div class="bar-track"><div class="bar-fill" id="bar-${it.key}" style="background:${BAR_COLORS[it.key]}"></div></div><div class="bar-value">${fmt(it.val)}</div>`;barsEl.appendChild(row);requestAnimationFrame(()=>{setTimeout(()=>{document.getElementById("bar-"+it.key).style.width=pct+"%"},60+i*60)})});
 
-  // Update slider displays
-  document.getElementById("valPrice").textContent = fmt(price);
-  document.getElementById("valYears").textContent = years + " yrs";
-  document.getElementById("valHours").textContent = hpy + " hrs";
-  document.getElementById("valFuel").textContent = "£" + fp.toFixed(2) + "/L";
-  document.getElementById("valIns").textContent = fmt(ins);
-  document.getElementById("valWarr").textContent = fmt(warr);
+  document.getElementById("statHours").textContent=Math.round(totalHours).toLocaleString();
+  document.getElementById("statFuel").textContent=fmt(fuel);
+  document.getElementById("statTPH").textContent=m.tonnesPerHour;
+  document.getElementById("statMode").textContent=mode.label;
 
-  document.querySelectorAll("input[type=range]").forEach(updateSliderTrack);
-
-  // Calculate
-  const totalHours = hpy * years;
-  const fuel = m.fuelPerHour * fp * totalHours;
-  const service = m.serviceAnnual * years;
-  const maint = price * m.maintenancePct * mode.mult * years;
-  const resid = price * lerp(m.residualCurve, years);
-  const depn = price - resid;
-  const insTotal = ins * years;
-  const total = depn + fuel + service + maint + warr + insTotal;
-  const cph = total / totalHours;
-
-  // Hero stats
-  document.getElementById("heroTCO").textContent = fmt(total);
-  document.getElementById("heroCPH").textContent = fmt(cph);
-  document.getElementById("heroResid").textContent = fmt(resid);
-
-  // Bars
-  const items = [
-    { key:"depn", label:"Depreciation", val:depn },
-    { key:"fuel", label:"Fuel", val:fuel },
-    { key:"service", label:"Servicing", val:service },
-    { key:"maint", label:"Maintenance", val:maint },
-    { key:"warr", label:"Warranty", val:warr },
-    { key:"ins", label:"Insurance", val:insTotal },
-  ];
-
-  const barsEl = document.getElementById("bars");
-  barsEl.innerHTML = "";
-  items.forEach((it, i) => {
-    if (it.val < 1) return;
-    const pct = (it.val / total) * 100;
-    const row = document.createElement("div");
-    row.className = "bar-row";
-    row.innerHTML = `
-      <div class="bar-label">${it.label}</div>
-      <div class="bar-track"><div class="bar-fill" id="bar-${it.key}" style="background:${BAR_COLORS[it.key]}"></div></div>
-      <div class="bar-value">${fmt(it.val)}</div>
-    `;
-    barsEl.appendChild(row);
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        document.getElementById("bar-" + it.key).style.width = pct + "%";
-      }, 60 + i * 60);
-    });
-  });
-
-  // Secondary stats
-  document.getElementById("statHours").textContent = totalHours.toLocaleString();
-  document.getElementById("statFuel").textContent = fmt(fuel);
-  document.getElementById("statTPH").textContent = m.tonnesPerHour;
-  document.getElementById("statMode").textContent = mode.label;
-
-  // Residual chart
-  const rc = document.getElementById("residualBars");
-  rc.innerHTML = "";
-  m.residualCurve.forEach((v, i) => {
-    const active = i <= years;
-    const col = document.createElement("div");
-    col.className = "residual-col";
-    col.innerHTML = `
-      <div class="track"><div class="fill ${active ? "active" : ""}" style="height:${v * 75}px"></div></div>
-      <div class="yr">Yr ${i}</div>
-      <div class="pct ${active ? "active" : ""}">${Math.round(v * 100)}%</div>
-    `;
-    rc.appendChild(col);
-  });
+  const rc=document.getElementById("residualBars");rc.innerHTML="";
+  m.residualCurve.forEach((v,i)=>{const active=i<=years;const col=document.createElement("div");col.className="residual-col";col.innerHTML=`<div class="track"><div class="fill ${active?"active":""}" style="height:${v*75}px"></div></div><div class="yr">Yr ${i}</div><div class="pct ${active?"active":""}">${Math.round(v*100)}%</div>`;rc.appendChild(col)});
 }
 </script>
 </body>
